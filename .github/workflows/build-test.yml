@@ -44,6 +44,12 @@ jobs:
             with:
               python-version: '>=3.13.5' # temporary bound until it becomes the default, https://github.com/python/cpython/issues/135151
               architecture: 'x64'
+          - name: Prepare AWS sandbox credentials
+            if: github.repository == 'zll600/libsnowflakeclient' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+            uses: ./.github/actions/prepare-aws-sandbox
+            with:
+              parameters: ${{ secrets.LIBSFCLIENT_AWS_PARAMETERS_JSON }}
+              private-key: ${{ secrets.LIBSFCLIENT_AWS_PRIVATE_KEY }}
           - name: Test
             shell: bash
             env:
@@ -85,6 +91,12 @@ jobs:
               with:
                 python-version: '>=3.13.5' # temporary bound until it becomes the default, https://github.com/python/cpython/issues/135151
                 architecture: 'x64'
+            - name: Prepare AWS sandbox credentials
+              if: matrix.cloud_provider == 'AWS' && github.repository == 'zll600/libsnowflakeclient' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+              uses: ./.github/actions/prepare-aws-sandbox
+              with:
+                parameters: ${{ secrets.LIBSFCLIENT_AWS_PARAMETERS_JSON }}
+                private-key: ${{ secrets.LIBSFCLIENT_AWS_PRIVATE_KEY }}
             - name: Test
               shell: bash
               env:
@@ -147,6 +159,12 @@ jobs:
                 # and is the newest CPython with a snowflake-connector-python wheel.
                 python-version: '3.14'
                 architecture: 'x64'
+            - name: Prepare AWS sandbox credentials
+              if: matrix.cloud_provider == 'AWS' && github.repository == 'zll600/libsnowflakeclient' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+              uses: ./.github/actions/prepare-aws-sandbox
+              with:
+                parameters: ${{ secrets.LIBSFCLIENT_AWS_PARAMETERS_JSON }}
+                private-key: ${{ secrets.LIBSFCLIENT_AWS_PRIVATE_KEY }}
             - name: Test
               shell: cmd
               env:
@@ -195,6 +213,12 @@ jobs:
                 path: dep-cache
                 key: ${{ matrix.build_type }}-${{ github.sha }}-Mac-dep-cache
               if: github.ref_name == github.event.repository.default_branch && matrix.cloud_provider == 'AWS'
+            - name: Prepare AWS sandbox credentials
+              if: matrix.cloud_provider == 'AWS' && github.repository == 'zll600/libsnowflakeclient' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+              uses: ./.github/actions/prepare-aws-sandbox
+              with:
+                parameters: ${{ secrets.LIBSFCLIENT_AWS_PARAMETERS_JSON }}
+                private-key: ${{ secrets.LIBSFCLIENT_AWS_PRIVATE_KEY }}
             - name: Test
               shell: bash
               env:
@@ -228,6 +252,12 @@ jobs:
               with:
                 python-version: '>=3.13.5' # temporary bound until it becomes the default, https://github.com/python/cpython/issues/135151
                 architecture: 'x64'
+            - name: Prepare AWS sandbox credentials
+              if: github.repository == 'zll600/libsnowflakeclient' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+              uses: ./.github/actions/prepare-aws-sandbox
+              with:
+                parameters: ${{ secrets.LIBSFCLIENT_AWS_PARAMETERS_JSON }}
+                private-key: ${{ secrets.LIBSFCLIENT_AWS_PRIVATE_KEY }}
             - name: Test on AWS
               shell: bash
               env:
