@@ -176,9 +176,16 @@ function set_parameters()
     local cloud_provider=$(echo $1 | tr '[:lower:]' '[:upper:]')
     CLOUD_PROVIDER=${cloud_provider:-AWS}
 
-    [[ -z "$PARAMETERS_SECRET" ]] && echo "Set PARAMETERS_SECRET" && exit 1
-
     local repo_root="$UTILS_DIR/.."
+    if [[ "$CLOUD_PROVIDER" == "AWS" && "$LIBSFCLIENT_AWS_SANDBOX" == "1" ]]; then
+        if [[ ! -s "$repo_root/parameters.json" || ! -s "$repo_root/rsa_keys/rsa_key_libsfclient_aws.p8" ]]; then
+            echo "AWS sandbox credentials are missing." >&2
+            return 1
+        fi
+        return 0
+    fi
+
+    [[ -z "$PARAMETERS_SECRET" ]] && echo "Set PARAMETERS_SECRET" && exit 1
     local params_dir="$repo_root/.github/workflows"
     local source_rsa_dir="$params_dir/rsa_keys"
     local target_rsa_dir="$repo_root/rsa_keys"

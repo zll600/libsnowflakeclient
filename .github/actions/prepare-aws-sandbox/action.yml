@@ -1,0 +1,27 @@
+name: Prepare AWS sandbox credentials
+description: Write the fork's AWS connection configuration and JWT key to the runner workspace.
+inputs:
+  parameters:
+    description: Snowflake parameters.json contents.
+    required: true
+  private-key:
+    description: Snowflake PKCS#8 private key.
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        AWS_SANDBOX_PARAMETERS: ${{ inputs.parameters }}
+        AWS_SANDBOX_PRIVATE_KEY: ${{ inputs.private-key }}
+      run: |
+        if [[ -z "$AWS_SANDBOX_PARAMETERS" || -z "$AWS_SANDBOX_PRIVATE_KEY" ]]; then
+          echo "Set LIBSFCLIENT_AWS_PARAMETERS_JSON and LIBSFCLIENT_AWS_PRIVATE_KEY in Actions secrets." >&2
+          exit 1
+        fi
+        cd "$GITHUB_WORKSPACE"
+        umask 077
+        mkdir -p rsa_keys
+        printf '%s\n' "$AWS_SANDBOX_PARAMETERS" > parameters.json
+        printf '%s\n' "$AWS_SANDBOX_PRIVATE_KEY" > rsa_keys/rsa_key_libsfclient_aws.p8
+        echo 'LIBSFCLIENT_AWS_SANDBOX=1' >> "$GITHUB_ENV"

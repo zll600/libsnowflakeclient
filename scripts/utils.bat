@@ -210,6 +210,11 @@ goto :EOF
     setlocal EnableDelayedExpansion
     @echo off
     set scriptdir=%~dp0
+    if /I "%CLOUD_PROVIDER%"=="AWS" if "%LIBSFCLIENT_AWS_SANDBOX%"=="1" (
+        if exist "%scriptdir%..\parameters.json" if exist "%scriptdir%..\rsa_keys\rsa_key_libsfclient_aws.p8" exit /b 0
+        echo AWS sandbox credentials are missing. 1>&2
+        exit /b 1
+    )
     set source_rsa_dir=%scriptdir%..\.github\workflows\rsa_keys
     set target_rsa_dir=%scriptdir%..\rsa_keys
     set rsa_key_basename=

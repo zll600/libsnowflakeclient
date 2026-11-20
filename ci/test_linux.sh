@@ -52,6 +52,7 @@ docker run \
         -e BUILD_NUMBER \
         -e JENKINS_HOME \
         -e PARAMETERS_SECRET \
+        -e LIBSFCLIENT_AWS_SANDBOX \
         -e AWS_ACCESS_KEY_ID \
         -e AWS_SECRET_ACCESS_KEY \
         -e GITHUB_ACTIONS \
