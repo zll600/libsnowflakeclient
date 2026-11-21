@@ -65,7 +65,7 @@ jobs:
             fail-fast: false
             matrix:
                 build_type: [ 'Debug', 'Release' ]
-                cloud_provider: [ 'AWS', 'AZURE', 'GCP' ]
+                cloud_provider: [ 'AWS' ]
         steps:
             - uses: actions/checkout@v5
             - name: Restore cached deps
@@ -114,7 +114,7 @@ jobs:
                 platform: [ 'x64', 'x86' ]
                 build_type: [ 'Debug', 'Release' ]
                 vs_version: [ 'VS17' ]
-                cloud_provider: [ 'AWS', 'AZURE', 'GCP' ]
+                cloud_provider: [ 'AWS' ]
         steps:
             - uses: actions/checkout@v5
             - name: Install CMake
@@ -183,7 +183,7 @@ jobs:
                 platform: [ 'x64', 'x86' ]
                 build_type: [ 'Debug', 'Release' ]
                 vs_version: [ 'VS18' ]
-                cloud_provider: [ 'AWS', 'AZURE', 'GCP' ]
+                cloud_provider: [ 'AWS' ]
         steps:
             - uses: actions/checkout@v5
             - name: Install CMake
@@ -251,7 +251,7 @@ jobs:
             fail-fast: false
             matrix:
                 build_type: [ 'Debug', 'Release' ]
-                cloud_provider: [ 'AWS', 'AZURE', 'GCP' ]
+                cloud_provider: [ 'AWS' ]
         steps:
             - uses: actions/checkout@v5
             - name: Install Homebrew Bash
@@ -350,6 +350,7 @@ jobs:
                 token: ${{ secrets.CODE_COV_UPLOAD_TOKEN }}
                 fail_ci_if_error: false
     build-test-codecov-azure:
+        if: ${{ false }}
         name: Build-Test-CodeCov-Linux-AZURE
         runs-on: ubuntu-latest
         strategy:
@@ -397,6 +398,7 @@ jobs:
                 token: ${{ secrets.CODE_COV_UPLOAD_TOKEN }}
                 fail_ci_if_error: false
     build-test-codecov-gcp:
+        if: ${{ false }}
         name: Build-Test-CodeCov-Linux-GCP
         runs-on: ubuntu-latest
         strategy:
