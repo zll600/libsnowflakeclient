@@ -21,25 +21,15 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [ 'Release' ]
+    env:
+      USE_EXTRA_WARNINGS: "true"
+      BUILD_TYPE: ${{ matrix.build_type }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '>=3.13.5' # temporary bound until it becomes the default, https://github.com/python/cpython/issues/135151
           architecture: 'x64'
-      - name: Restore cached deps
-        id: cache-restore-deps
-        uses: actions/cache/restore@v5
-        with:
-          path: dep-cache
-          key: ${{ matrix.build_type }}-${{ github.event.pull_request.base.sha }}-Linux-dep-cache
-        if: github.event_name == 'pull_request'
-      - name: Build
-        shell: bash
-        env:
-          USE_EXTRA_WARNINGS: "true"
-          BUILD_TYPE: ${{ matrix.build_type }}
-        run: ci/build_linux.sh
       - name: Restore cached warnings
         id: cache-restore-warnings
         uses: actions/cache/restore@v5
@@ -51,6 +41,38 @@ jobs:
         shell: bash
         run: cp warnings.json ./ci/scripts/warnings_baseline.json
         if: steps.cache-restore-warnings.outputs.cache-hit == 'true'
+      - name: Check out PR base for warning baseline
+        if: github.event_name == 'pull_request' && steps.cache-restore-warnings.outputs.cache-hit != 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .warning-base
+          persist-credentials: false
+      - name: Build PR base for warning baseline
+        if: github.event_name == 'pull_request' && steps.cache-restore-warnings.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: .warning-base
+        env:
+          BASE_REF: refs/heads/${{ github.base_ref }}
+        run: |
+          GITHUB_WORKSPACE="$PWD" GITHUB_SHA="$(git rev-parse HEAD)" GITHUB_REF="$BASE_REF" ci/build_linux.sh
+          python3 "$GITHUB_WORKSPACE/ci/scripts/generate_warning_report.py" \
+            --build-log build.log \
+            --load-warnings <(printf '[]\n') \
+            --dump-warnings "$GITHUB_WORKSPACE/ci/scripts/warnings_baseline.json" \
+            --report /dev/null
+          # Free the base build's disk space before building the PR.
+          git clean -ffdx
+      - name: Restore cached deps
+        id: cache-restore-deps
+        uses: actions/cache/restore@v5
+        with:
+          path: dep-cache
+          key: ${{ matrix.build_type }}-${{ github.event.pull_request.base.sha }}-Linux-dep-cache
+        if: github.event_name == 'pull_request'
+      - name: Build
+        shell: bash
+        run: ci/build_linux.sh
       - name: Warning report
         shell: bash
         env:
