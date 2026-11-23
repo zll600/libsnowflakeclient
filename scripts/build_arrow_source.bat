@@ -69,9 +69,12 @@ if defined PDO_VENDOR_BUILD (
     set "arrow_msvc_debug=-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Empty"
 )
 
+:: Arrow configures its bundled dependencies (e.g. xsimd) as ExternalProjects,
+:: which do not see -D options from this command line. Set the CMake 4.x policy
+:: floor through the environment instead so every nested configure inherits it.
+set CMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake ..\ ^
 -G "%cmake_generator%" -A "%cmake_architecture%" ^
--DCMAKE_POLICY_VERSION_MINIMUM=3.5 ^
 -DCMAKE_BUILD_TYPE=%build_type% ^
 -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF ^
 -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL_DIR% ^
