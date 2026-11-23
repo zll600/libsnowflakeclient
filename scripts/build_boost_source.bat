@@ -69,7 +69,12 @@ if /I "%dynamic_runtime%"=="on" (
 set boost_toolset=msvc-14.3
 if /I "%vs_version%"=="VS18" set boost_toolset=msvc
 
-call "%BOOST_SOURCE_DIR%\bootstrap.bat" --with-libraries=filesystem,regex,system,url
+:: Boost 1.81's bootstrap cannot detect VS2026 ("Unknown toolset: vcunk"), so
+:: use its generic msvc toolset, which builds b2 with the cl.exe set up by
+:: vcvarsall and writes "using msvc ;" to project-config.jam.
+set boost_bootstrap_toolset=
+if /I "%vs_version%"=="VS18" set boost_bootstrap_toolset=msvc
+call "%BOOST_SOURCE_DIR%\bootstrap.bat" %boost_bootstrap_toolset% --with-libraries=filesystem,regex,system,url
 if %ERRORLEVEL% NEQ 0 goto :error
 b2 ^
     -a^
