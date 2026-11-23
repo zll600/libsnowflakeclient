@@ -102,17 +102,26 @@ if (WITH_STATIC_LIB)
     )
 endif (WITH_STATIC_LIB)
 
-if (POLICY CMP0026)
-    cmake_policy(SET CMP0026 OLD)
-endif()
-
 #
 # In order to run tests we will need to set the approriate environment
 # variable so that the test program can locate its dependent DLL's. First
 # we want to know what directory our dependent DLL was installed into:
 #
-get_target_property(_cmocka_dir cmocka_shared LOCATION_${CMOCKA_BUILD_TYPE})
-get_filename_component(_cmocka_path "${_cmocka_dir}" PATH)
+if (CMAKE_VERSION VERSION_LESS 4.0)
+    if (POLICY CMP0026)
+        cmake_policy(SET CMP0026 OLD)
+    endif()
+    get_target_property(_cmocka_dir cmocka_shared LOCATION_${CMOCKA_BUILD_TYPE})
+    get_filename_component(_cmocka_path "${_cmocka_dir}" PATH)
+else()
+    # CMake 4.0 removed the OLD behavior of CMP0026 (reading LOCATION).
+    get_property(_cmocka_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if (_cmocka_multi_config AND CMAKE_BUILD_TYPE)
+        set(_cmocka_path "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+    else()
+        set(_cmocka_path "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
+endif()
 file(TO_NATIVE_PATH "${_cmocka_path}" _cmocka_path_native)
 
 set(CMOCKA_DLL_PATH "${_cmocka_path_native}" PARENT_SCOPE)
