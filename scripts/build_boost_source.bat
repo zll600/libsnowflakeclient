@@ -64,19 +64,31 @@ if /I "%dynamic_runtime%"=="on" (
     set runtimelink=static
 )
 
-:: Boost 1.81's b2 only knows MSVC toolsets up to 14.3 (VS2022). For VS2026
-:: (toolset v145) let b2 pick up the cl.exe already on PATH from vcvarsall.
-set boost_toolset=msvc-14.3
-if /I "%vs_version%"=="VS18" set boost_toolset=msvc
-
-:: Boost 1.81's bootstrap cannot detect VS2026 ("Unknown toolset: vcunk"), so
-:: use its generic msvc toolset, which builds b2 with the cl.exe set up by
-:: vcvarsall and writes "using msvc ;" to project-config.jam.
+:: Boost 1.81 does not know VS2026 (toolset v145):
+:: - bootstrap fails with "Unknown toolset: vcunk", so pass its generic msvc
+::   toolset, which builds b2 with the cl.exe set up by vcvarsall.
+:: - b2 cannot detect the MSVC version and falls back to a broken "msvc-6.0",
+::   so declare msvc-14.5 in a user-config: cl.exe comes from PATH and the
+::   setup script is VS2026's vcvarsall.bat. Jam treats \ as an escape, so
+::   the path uses forward slashes.
 set boost_bootstrap_toolset=
-if /I "%vs_version%"=="VS18" set boost_bootstrap_toolset=msvc
+set boost_toolset=msvc-14.3
+set boost_user_config=
+if /I "%vs_version%"=="VS18" (
+    set boost_bootstrap_toolset=msvc
+    set boost_toolset=msvc-14.5
+    set "boost_user_config=--user-config=%BOOST_SOURCE_DIR%\user-config-vs18.jam"
+    setlocal EnableDelayedExpansion
+    for %%i in ("%VCINSTALLDIR%\Auxiliary\Build\vcvarsall.bat") do set "boost_vcvarsall=%%~fi"
+    > "%BOOST_SOURCE_DIR%\user-config-vs18.jam" echo using msvc : 14.5 : : ^<setup^>"!boost_vcvarsall:\=/!" ;
+    endlocal
+    type "%BOOST_SOURCE_DIR%\user-config-vs18.jam"
+)
+
 call "%BOOST_SOURCE_DIR%\bootstrap.bat" %boost_bootstrap_toolset% --with-libraries=filesystem,regex,system,url
 if %ERRORLEVEL% NEQ 0 goto :error
 b2 ^
+    %boost_user_config%^
     -a^
     --prefix=%BOOST_INSTALL_DIR%^
     --exec-prefix=%BOOST_INSTALL_DIR%^
